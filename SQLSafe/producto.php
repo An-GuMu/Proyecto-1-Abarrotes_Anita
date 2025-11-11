@@ -22,21 +22,16 @@ if (isset($_POST['agregar_prod'])) {
 
     if ($stmt_prod->execute()) {
         
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Si es Duradero (con Garantía), inserta en Producto_Duradero
         if ($tipo == 'duradero') {
             $gar = $_POST['garantia'];
-            // La tabla 'Producto_Duradero' es la que tiene 'garantia'
             $stmt_hija = $conn->prepare("INSERT INTO Producto_Duradero (codigo_de_barras, garantia) VALUES (?, ?)");
             $stmt_hija->bind_param("ss", $cod, $gar);
-        } else { // Si es No Duradero (con Caducidad), inserta en Producto_No_Duradero
+        } else { 
             $cad = $_POST['caducidad'];
             $temp = $_POST['temperatura'];
-            // La tabla 'Producto_No_Duradero' es la que tiene 'caducidad' y 'temperatura'
             $stmt_hija = $conn->prepare("INSERT INTO Producto_No_Duradero (codigo_de_barras, caducidad, temperatura) VALUES (?, ?, ?)");
             $stmt_hija->bind_param("ssd", $cod, $cad, $temp);
         }
-        // --- FIN DE LA CORRECCIÓN ---
 
         if ($stmt_hija->execute()) {
             $conn->query("COMMIT");
