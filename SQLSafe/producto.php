@@ -22,16 +22,21 @@ if (isset($_POST['agregar_prod'])) {
 
     if ($stmt_prod->execute()) {
         
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Si es Duradero (con Garantía), inserta en Producto_Duradero
         if ($tipo == 'duradero') {
+            $gar = $_POST['garantia'];
+            // La tabla 'Producto_Duradero' es la que tiene 'garantia'
+            $stmt_hija = $conn->prepare("INSERT INTO Producto_Duradero (codigo_de_barras, garantia) VALUES (?, ?)");
+            $stmt_hija->bind_param("ss", $cod, $gar);
+        } else { // Si es No Duradero (con Caducidad), inserta en Producto_No_Duradero
             $cad = $_POST['caducidad'];
             $temp = $_POST['temperatura'];
-            $stmt_hija = $conn->prepare("INSERT INTO Producto_Duradero (codigo_de_barras, caducidad, temperatura) VALUES (?, ?, ?)");
+            // La tabla 'Producto_No_Duradero' es la que tiene 'caducidad' y 'temperatura'
+            $stmt_hija = $conn->prepare("INSERT INTO Producto_No_Duradero (codigo_de_barras, caducidad, temperatura) VALUES (?, ?, ?)");
             $stmt_hija->bind_param("ssd", $cod, $cad, $temp);
-        } else {
-            $gar = $_POST['garantia'];
-            $stmt_hija = $conn->prepare("INSERT INTO Producto_No_Duradero (codigo_de_barras, garantia) VALUES (?, ?)");
-            $stmt_hija->bind_param("ss", $cod, $gar);
         }
+        // --- FIN DE LA CORRECCIÓN ---
 
         if ($stmt_hija->execute()) {
             $conn->query("COMMIT");
@@ -92,16 +97,19 @@ if (isset($_POST['agregar_prod'])) {
             </select>
             <select name="tipo_producto" id="tipo_producto" required onchange="mostrarCampos()" style="width: 100%;">
                 <option value="">-- Tipo de Producto --</option>
-                <option value="duradero">Duradero</option>
-                <option value="no_duradero">No Duradero</option>
+                <option value="duradero">Duradero (con Garantía)</option>
+                <option value="no_duradero">No Duradero (con Caducidad)</option>
             </select>
+            
             <div id="campos_duradero" class="campo-hijo">
+                <input type="text" name="garantia" placeholder="Garantía (ej: 1 año)" style="width: 100%;">
+            </div>
+
+            <div id="campos_no_duradero" class="campo-hijo">
                 <input type="date" name="caducidad" title="Caducidad">
                 <input type="number" step="0.01" name="temperatura" placeholder="Temperatura °C">
             </div>
-            <div id="campos_no_duradero" class="campo-hijo">
-                <input type="text" name="garantia" placeholder="Garantía (ej: 1 año)" style="width: 100%;">
-            </div>
+
             <button type="submit" name="agregar_prod" class="full-width">Agregar Producto</button>
         </form>
 
